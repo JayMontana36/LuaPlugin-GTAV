@@ -1,3 +1,5 @@
+local type = type
+
 local Script_Persist = {} -- never gc these
 Script = setmetatable
 (
@@ -22,8 +24,13 @@ Script = setmetatable
 						else
 							-- generate Key from debug info for the calling module
 						end
-						if not JustCreated and Persist then
-							Script_Persist[Key] = Value
+						if not JustCreated then
+							local _Persist = Script_Persist[Key]
+							if _Persist and type(_Persist) == "boolean" then
+								Script_Persist[Key] = Value
+							end
+						else
+							Script_Persist[Key] = Persist and type(Persist) == "boolean" 
 						end
 						return Value
 					end,
