@@ -11,7 +11,6 @@ JM36_GTAV_LuaPlugin_Version=20221218.0
 
 
 --[[ Localize all "frequently" used things ]]
-local _G = _G
 local Scripts_Path = Scripts_Path
 local setmetatable = setmetatable
 local pairs = pairs
@@ -32,10 +31,11 @@ local collectgarbage = collectgarbage
 
 
 --[[ Create secondary "global" table for storing tables containing "global" functions, such as natives. ]]
+local GlobalsWarnAndRedirect
 do
 	local _G2 = setmetatable
 	(
-		{},
+		{_GlobalVariables={}},
 		{
 			__index = function(Self,Key)
 				for k,v in pairs(Self) do
@@ -52,6 +52,15 @@ do
 		{
 			__index = function(Self,Key)
 				return _G2[Key]
+			end,
+			__newindex = function(Self,Key,Value)
+				local DebugData = debug.getinfo(2,'lS')
+				if DebugData and GlobalsWarnAndRedirect and not (DebugData.what == 'main' or DebugData.short_src == 'scripts/main.lua') then
+					print(('[Warning - Script]	%s:%s\n	Variable "%s" (%s) declared global (use local).'):format(DebugData.short_src, DebugData.currentline, Key, type(Value)))
+					_G2._GlobalVariables[Key] = Value
+				else
+					rawset(Self,Key,Value)
+				end
 			end
 		}
 	)
@@ -339,6 +348,7 @@ end
 --[[ Create init "handler" function for lp ]]
 init = function()
 	collectgarbage()
+	GlobalsWarnAndRedirect = true
 	Scripts_Init()
 end
 
