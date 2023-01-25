@@ -1,17 +1,16 @@
 -- Config Area
-DebugMode		= false
-Scripts_Path	= "scripts\\ScriptsDir-Lua\\" or "C:\\Path\\To\\ScriptsDir-Lua\\"
+DebugMode       = false
+Scripts_Path    = "scripts\\ScriptsDir-Lua\\" or "C:\\Path\\To\\ScriptsDir-Lua\\"
 
 
 
 -- Script/Code Area
 --[[ Define JM36 LP Version ]]
-JM36_GTAV_LuaPlugin_Version=20221130.0
+JM36_GTAV_LuaPlugin_Version=20230125.0
 
 
 
 --[[ Localize all "frequently" used things ]]
-local _G = _G
 local Scripts_Path = Scripts_Path
 local setmetatable = setmetatable
 local pairs = pairs
@@ -21,12 +20,7 @@ local coroutine_create = coroutine.create
 local coroutine_wrap = coroutine.wrap
 local coroutine_resume = coroutine.resume
 local coroutine_status = coroutine.status
-local table = table
-local table_insert = table.insert
 local table_sort = table.sort
-local io = io
-local io_open = io.open
-local io_lines = io.lines
 local lfs_dir = lfs.dir
 local print = print
 local type = type
@@ -37,10 +31,11 @@ local collectgarbage = collectgarbage
 
 
 --[[ Create secondary "global" table for storing tables containing "global" functions, such as natives. ]]
+local GlobalsWarnAndRedirect
 do
 	local _G2 = setmetatable
 	(
-		{},
+		{_GlobalVariables={}},
 		{
 			__index = function(Self,Key)
 				for k,v in pairs(Self) do
@@ -57,6 +52,15 @@ do
 		{
 			__index = function(Self,Key)
 				return _G2[Key]
+			end,
+			__newindex = function(Self,Key,Value)
+				local DebugData = debug.getinfo(2,'lS')
+				if DebugData and GlobalsWarnAndRedirect and not (DebugData.what == 'main' or DebugData.short_src == 'scripts/main.lua') then
+					print(('[Warning - Script]	%s:%s\n	Variable "%s" (%s) declared global (use local).'):format(DebugData.short_src, DebugData.currentline, Key, type(Value)))
+					_G2._GlobalVariables[Key] = Value
+				else
+					rawset(Self,Key,Value)
+				end
 			end
 		}
 	)
@@ -99,35 +103,6 @@ do
 	end
 end
 _G.unrequire = unrequire
-do
-	function configFileRead(file,sep) -- Read simple config file
-		file = Scripts_Path..file;sep = sep or "="
-		local configFile = io_open(file);local config = {}
-		if configFile then
-			for line in io_lines(file) do
-				if not (line:startsWith("[") and line:endsWith("]")) then
-					line = line:gsub("\n","");line = line:gsub("\r","")
-					if line ~= "" then
-						line = line:split(sep)
-						config[line[1]] = line[2]
-					end
-				end
-			end
-			configFile:close()
-		end
-		return config
-	end
-	
-	do
-		local tostring = tostring
-		function configFileWrite(configFile, config, sep) -- Write simple config file
-			local configFile, sep = io_open(Scripts_Path..configFile, "w"), sep or "="
-			for k,v in pairs(config) do
-				configFile:write(("%s%s%s\n"):format(k, sep, tostring(v)))
-			end
-		end
-	end
-end
 
 
 
@@ -172,10 +147,10 @@ _G.Info = Info
 local JM36 =
 {
 	CreateThread_HighPriority = function(func)
-			table_insert(Threads_HighPriority, coroutine_create(func))
+			Threads_HighPriority[#Threads_HighPriority+1] = coroutine_create(func)
 		end,
 	CreateThread = function(func)
-			table_insert(Threads_New, coroutine_create(func))
+			Threads_New[#Threads_New+1] = coroutine_create(func)
 		end,
 	Wait=0,
 	wait=0,
@@ -373,6 +348,7 @@ end
 --[[ Create init "handler" function for lp ]]
 init = function()
 	collectgarbage()
+	GlobalsWarnAndRedirect = true
 	Scripts_Init()
 end
 
