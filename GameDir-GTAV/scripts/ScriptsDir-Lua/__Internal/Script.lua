@@ -1,36 +1,37 @@
 local type = type
+local pairs = pairs
 
-local Script_Persist = {} -- never gc these
+local Script_Persist_Reloads = {} -- never gc these
+--local Script_Persist = setmetatable({},{__index=function(Self,Key)return Script_Persist_Reloads[Key] or Script_Persist_Restarts[Key] or nil end})
+
+local Script_Properties_Handler =
+{
+	PersistReloads	=	function(Table, Key, State)
+							Script_Persist_Reloads[Key] = State and Table or nil;return Table
+						end
+}
+
 Script = setmetatable
 (
 	{},
 	{
 		__mode  =   "v",
-		--[[__index =   function(Self, Key)
-						local Value = {}
-						Self[Key] = Value
-						return Value
-					end,]]
-		__index =   Script_Persist,
-		__call	=	function(Self, Key, Persist)
-						local Value, JustCreated
+		__index =   Script_Persist_Reloads,
+		__call	=	function(Self, Key, Properties)
+						local Value
 						if Key then
-							Value = Self[Key]
-							if not Value then
-								JustCreated = true
-								Value = {}
-								Self[Key] = Value
+							Value = Self[Key] or {}
+							if Properties and type(Properties) == 'table' then
+								for _Key, _Value in pairs(Properties) do
+									_Key = _Value and Script_Properties_Handler[_Key]
+									if _Key then
+										Value = _Key(Value, Key, _Value)
+									end
+								end
 							end
+							Self[Key] = Value
 						else
 							-- generate Key from debug info for the calling module
-						end
-						if not JustCreated then
-							local _Persist = Script_Persist[Key]
-							if _Persist and type(_Persist) == "boolean" then
-								Script_Persist[Key] = Value
-							end
-						else
-							Script_Persist[Key] = Persist and type(Persist) == "boolean" 
 						end
 						return Value
 					end,
