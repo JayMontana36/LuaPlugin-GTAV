@@ -6,7 +6,7 @@ Scripts_Path    = "scripts\\ScriptsDir-Lua\\" or "C:\\Path\\To\\ScriptsDir-Lua\\
 
 -- Script/Code Area
 --[[ Define JM36 LP Version ]]
-JM36_GTAV_LuaPlugin_Version=20221218.0
+JM36_GTAV_LuaPlugin_Version=20230125.0
 
 
 
