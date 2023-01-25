@@ -1,7 +1,7 @@
 -- DONT RENAME THIS FILE
--- This should be 0A_Natives-1669843920.lua wherein 1669843920 represents the version.
+-- This should be 0A_Natives-1674615868.lua wherein 1674615868 represents the version.
 
-JM36_GTAV_LuaPlugin_FunctionRemapper_Version = 20221130.0
+JM36_GTAV_LuaPlugin_FunctionRemapper_Version = 20230124.0
 local OldNames =
 {
 	["AddAMarkerOverVehicle"]="AreWingsOfPlaneIntact",
@@ -459,7 +459,6 @@ local OldNames =
 	["NetworkSessionActivityQuickmatch"]="NetworkSessionDoActivityQuickmatch",
 	["NetworkSessionArePlayersVotingToKick"]="NetworkSessionGetKickVote",
 	["NetworkSessionCrewMatchmaking"]="NetworkSessionDoCrewMatchmaking",
-	["NetworkSessionEnter"]="NetworkSessionDoFreeroamQuickmatch",
 	["NetworkSessionFriendMatchmaking"]="NetworkSessionDoFriendMatchmaking",
 	["NetworkSessionGetUnk"]="NetworkSessionGetMatchmakingGroupFree",
 	["NetworkSessionHosted"]="NetworkSessionValidateJoin",
@@ -2860,6 +2859,7 @@ _G2.Natives_PascalCase = setmetatable
 		["LeaderboardsWriteAddColumnLong"]=STATS._0x2E65248609523599,
 		["LinkNamedRendertarget"]=UI.LINK_NAMED_RENDERTARGET,
 		["LoadAllObjectsNow"]=STREAMING.LOAD_ALL_OBJECTS_NOW,
+		["LoadAllPathNodes"]=PATHFIND.LOAD_ALL_PATH_NODES,
 		["LoadCloudHat"]=GAMEPLAY._SET_CLOUD_HAT_TRANSITION,
 		["LoadHighQualityPhoto"]=GRAPHICS._0xEC72C258667BE5EA,
 		["LoadMissionCreatorPhoto"]=GRAPHICS._0x4862437A486F91B0,
@@ -3279,7 +3279,6 @@ _G2.Natives_PascalCase = setmetatable
 		["NetworkSessionChangeSlots"]=NETWORK._0xB4AB419E0D86ACAE,
 		["NetworkSessionDoActivityQuickmatch"]=NETWORK._0xBE3E347A87ACEB82,
 		["NetworkSessionDoCrewMatchmaking"]=NETWORK._0x94BC51E9449D917F,
-		["NetworkSessionDoFreeroamQuickmatch"]=NETWORK.NETWORK_SESSION_ENTER,
 		["NetworkSessionDoFriendMatchmaking"]=NETWORK._0x2CFC76E0D087C994,
 		["NetworkSessionEnd"]=NETWORK.NETWORK_SESSION_END,
 		["NetworkSessionForceCancelInvite"]=NETWORK._0xA29177F7703B5644,
@@ -5557,13 +5556,13 @@ _G2.Natives_PascalCase = setmetatable
 							DebugInfoCount = DebugInfoCount + 1
 							DebugInfo = debug_getinfo(DebugInfoCount)
 							DebugInfoArray[DebugInfoCount] = DebugInfo
-						until DebugInfo == nil or DebugInfo.what == "main"
-						if DebugInfo and DebugInfo.what == "main" then
+						until DebugInfo == nil or (DebugInfo.what == "main" and DebugInfo.short_src ~= 'scripts/main.lua')
+						if DebugInfo and (DebugInfo.what == "main" and DebugInfo.short_src ~= 'scripts/main.lua') then
 							ErrorSource = DebugInfo
 						else
 							for Index=2,DebugInfoCount do
 								DebugInfo = DebugInfoArray[Index]
-								if DebugInfo.currentline ~= -1 and not DebugInfo.short_src:startsWith "[string " then
+								if DebugInfo.currentline ~= -1 and DebugInfo.short_src ~= 'scripts/main.lua' and not DebugInfo.short_src:startsWith "[string " then
 									ErrorSource = DebugInfo
 									break
 								end
@@ -5571,9 +5570,9 @@ _G2.Natives_PascalCase = setmetatable
 						end
 					end
 					if ErrorSource then
-						print(('[Heads Up - Native]\n	"%s" is now known as "%s".\n	%s:%s'):format(Key, NewName, ErrorSource.short_src, ErrorSource.currentline))
+						print(('[Heads Up - Native]	%s:%s\n	"%s" is now known as "%s".'):format(ErrorSource.short_src, ErrorSource.currentline, Key, NewName))
 					else
-						print(('[Heads Up - Native]\n	"%s" is now known as "%s".\n	No additional information is available.'):format(Key, NewName))
+						print(('[Heads Up - Native]	No Information Available\n	"%s" is now known as "%s".'):format(Key, NewName))
 					end
 				end
 				return Value
