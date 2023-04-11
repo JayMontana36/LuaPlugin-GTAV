@@ -1,17 +1,8 @@
 local setmetatable = setmetatable
-local mode = "kv"
-local call = function(Table, Key) return Table[Key] end
-return function(Function)
-	local Function = Function
-	return setmetatable({},
-		{
-			__mode	=	mode,
-			__index	=	function(Table, Key)
-							local Value = Function(Key)
-							Table[Key] = Value
-							return Value
-						end,
-			__call	=	call,
-		}
-	)
-end
+local metatable =
+{
+	__mode	=	"kv",
+	__index =	function(Self,Key)local Value=Self.__SrcFunc(Key)Self[Key]=Value;return Value;end,
+	__call	=	function(Self,Key)return Self[Key]end,
+}
+return function(SrcFunc)return setmetatable({__SrcFunc=SrcFunc},metatable)end
