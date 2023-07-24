@@ -3,6 +3,7 @@ local Info = Info
 local print = print
 local type = type
 local ipairs = ipairs
+local next = next
 local pairs = function(t)return next,t end -- avoid using __pairs in Lua 5.2+
 
 local DrawRect = DrawRect
