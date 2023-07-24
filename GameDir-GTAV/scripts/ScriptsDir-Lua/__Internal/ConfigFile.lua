@@ -1,15 +1,24 @@
 local assert = assert
 local io_open = io.open
 local io_lines = io.lines
-local pairs = pairs
+local next = next
+local pairs = function(t)return next,t end -- avoid using __pairs in Lua 5.2+
 local tostring = tostring
 local type = type
 
 local Scripts_Path = Scripts_Path
+local DataFilePath = Scripts_Path.."__DataFiles//"
 
 function configFileRead(file,sep) -- Read simple config file
-	file = Scripts_Path..file;sep = sep or "="
-	local configFile = assert(io_open(file), "Invalid File Path");local config = {}
+	local config = {}
+	sep = sep or "="
+	local configFile = io_open(DataFilePath..file)
+	if configFile then
+		file = DataFilePath..file
+	else
+		file = Scripts_Path..file
+		configFile = assert(io_open(Scripts_Path..file), "Invalid File Path")
+	end
 	if configFile then
 		for line in io_lines(file) do
 			if not (line:startsWith("[") and line:endsWith("]")) then
@@ -26,7 +35,8 @@ function configFileRead(file,sep) -- Read simple config file
 end
 
 function configFileWrite(configFile, config, sep) -- Write simple config file
-	configFile, sep = assert(io_open(Scripts_Path..configFile, "w"), "Invalid File Path"), sep or "="
+	sep = sep or "="
+	configFile = assert(io_open(DataFilePath..configFile, "w"), "Invalid File Path")
 	for k,v in pairs(config) do
 		configFile:write(("%s%s%s\n"):format(k, sep, tostring(v)))
 	end
@@ -35,7 +45,7 @@ end
 
 function configFileWriteLine(File, Line, Data)
 	local FileLines, FileLinesCount, _File = {}, 0
-	File = Scripts_Path..File
+	File = DataFilePath..File
 	
 	_File = assert(io_open(File, "r"), "Invalid File Path")
 	for line in _File:lines() do
@@ -92,7 +102,10 @@ configFileFindLineFromText = setmetatable
 						return Self["nil"]
 					end,
 		__call  =   function(Self, file, text, occurence)
-						local configFile = assert(io_open(Scripts_Path.. file, "r"), "Invalid File Path")
+						local configFile = io_open(DataFilePath..file)
+						if not configFile then
+							configFile = assert(io_open(Scripts_Path..file), "Invalid File Path")
+						end
 						local line, failed = Self[type(occurence)](configFile, text, occurence)
 						configFile:close()
 						return line, failed

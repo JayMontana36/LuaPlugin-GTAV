@@ -6,7 +6,7 @@ Scripts_Path    = "scripts\\ScriptsDir-Lua\\" or "C:\\Path\\To\\ScriptsDir-Lua\\
 
 -- Script/Code Area
 --[[ Define JM36 LP Version ]]
-JM36_GTAV_LuaPlugin_Version=20230125.0
+JM36_GTAV_LuaPlugin_Version=20230724.0
 
 
 
@@ -154,7 +154,8 @@ local JM36 =
 		end,
 	Wait=0,
 	wait=0,
-	yield=0
+	yield=0,
+	yield_once=coroutine_yield
 }
 do
 	local Halt = function(ms)
