@@ -90,6 +90,10 @@ do
 	string.endsWith = function(string, endsWith) -- Check if a string ends with something
 		return string:sub(-#endsWith) == endsWith
 	end
+	
+	string.escape = function(string)
+		return string:gsub("[%^%$%(%)%%%.%[%]%*%+%-%?]","%%%1")
+	end
 end
 
 
