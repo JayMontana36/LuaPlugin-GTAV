@@ -71,28 +71,28 @@ end
 --[[ Add string functions ]]
 do
 	local string = string
-	string.split = function(string,sep) -- Split strings into chunks or arguments (in tables)
+	string.split = function(str,sep) -- Split strings into chunks or arguments (in tables)
 		sep = sep or "%s"
 		local t,n={},0
-		for str in string:gmatch("([^"..sep.."]+)") do
+		for str in str:gmatch("([^"..sep.."]+)") do
 			n=n+1 t[n]=str
 		end
 		return t
 	end
 	
-	string.upperFirst = function(string) -- Make the first letter of a string uppercase
-		return string:sub(1,1):upper()..string:sub(2)
+	string.upperFirst = function(str) -- Make the first letter of a string uppercase
+		return str:sub(1,1):upper()..str:sub(2)
 	end
 	
-	string.startsWith = function(string, startsWith) -- Check if a string starts with something
-		return string:sub(1, #startsWith) == startsWith
+	string.startsWith = function(str, startsWith) -- Check if a string starts with something
+		return str:sub(1, #startsWith) == startsWith
 	end
-	string.endsWith = function(string, endsWith) -- Check if a string ends with something
-		return string:sub(-#endsWith) == endsWith
+	string.endsWith = function(str, endsWith) -- Check if a string ends with something
+		return str:sub(-#endsWith) == endsWith
 	end
 	
-	string.escape = function(string)
-		return string:gsub("[%^%$%(%)%%%.%[%]%*%+%-%?]","%%%1")
+	string.escape = function(str)
+		return str:gsub("[%^%$%(%)%%%.%[%]%*%+%-%?]","%%%1")
 	end
 end
 
