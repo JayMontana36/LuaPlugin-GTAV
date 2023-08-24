@@ -81,6 +81,16 @@ do
 		return Value ~= "" and Value or nil
 	end
 	
+	FuncStrMeta.__add = function(strA,strB)
+		return strA..strB
+	end
+	FuncStrMeta.__sub = function(strA,strB)
+		return strA:gsub(strB,"")
+	end
+	FuncStrMeta.__mul = function(str,num)
+		return str:rep(num)
+	end
+	
 	FuncStr.split = function(str,sep) -- Split strings into chunks or arguments (in tables)
 		sep = sep or "%s"
 		local t,n={},0
