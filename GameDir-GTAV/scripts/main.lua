@@ -14,6 +14,7 @@ JM36_GTAV_LuaPlugin_Version=20230724.0
 local Scripts_Path = Scripts_Path
 local setmetatable = setmetatable
 local pairs = pairs
+local type = type
 local coroutine = coroutine
 local coroutine_yield = coroutine.yield
 local coroutine_create = coroutine.create
@@ -23,7 +24,6 @@ local coroutine_status = coroutine.status
 local table_sort = table.sort
 local lfs_dir = lfs.dir
 local print = print
-local type = type
 local pcall = pcall
 local require = require
 local collectgarbage = collectgarbage
@@ -70,8 +70,18 @@ end
 
 --[[ Add string functions ]]
 do
-	local string = string
-	string.split = function(str,sep) -- Split strings into chunks or arguments (in tables)
+	local FuncStrMeta = getmetatable("")
+	local FuncStr = FuncStrMeta.__index
+	
+	FuncStrMeta.__index = function(Self,Key)
+		if type(Key) ~= 'number' then
+			return FuncStr[Key]
+		end
+		local Value = Self:sub(Key,Key)
+		return Value ~= "" and Value or nil
+	end
+	
+	FuncStr.split = function(str,sep) -- Split strings into chunks or arguments (in tables)
 		sep = sep or "%s"
 		local t,n={},0
 		for str in str:gmatch("([^"..sep.."]+)") do
@@ -80,18 +90,18 @@ do
 		return t
 	end
 	
-	string.upperFirst = function(str) -- Make the first letter of a string uppercase
+	FuncStr.upperFirst = function(str) -- Make the first letter of a string uppercase
 		return str:sub(1,1):upper()..str:sub(2)
 	end
 	
-	string.startsWith = function(str, startsWith) -- Check if a string starts with something
+	FuncStr.startsWith = function(str, startsWith) -- Check if a string starts with something
 		return str:sub(1, #startsWith) == startsWith
 	end
-	string.endsWith = function(str, endsWith) -- Check if a string ends with something
+	FuncStr.endsWith = function(str, endsWith) -- Check if a string ends with something
 		return str:sub(-#endsWith) == endsWith
 	end
 	
-	string.escape = function(str)
+	FuncStr.escape = function(str)
 		return str:gsub("[%^%$%(%)%%%.%[%]%*%+%-%?]","%%%1")
 	end
 end
