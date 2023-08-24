@@ -17,7 +17,7 @@ function configFileRead(file,sep) -- Read simple config file
 		file = DataFilePath..file
 	else
 		file = Scripts_Path..file
-		configFile = assert(io_open(Scripts_Path..file), "Invalid File Path")
+		configFile = io_open(Scripts_Path..file)
 	end
 	if configFile then
 		for line in io_lines(file) do
