@@ -36,8 +36,8 @@ function GUI.addButton(name, func,args, xmin, xmax, ymin, ymax)
 	GUI.GUI[GUI.buttonCount+1]["active"] = false
 	GUI.GUI[GUI.buttonCount+1]["xmin"] = xmin
 	GUI.GUI[GUI.buttonCount+1]["ymin"] = ymin * (GUI.buttonCount + 0.01) +0.02
-	GUI.GUI[GUI.buttonCount+1]["xmax"] = xmax 
-	GUI.GUI[GUI.buttonCount+1]["ymax"] = ymax 
+	GUI.GUI[GUI.buttonCount+1]["xmax"] = xmax
+	GUI.GUI[GUI.buttonCount+1]["ymax"] = ymax
 	GUI.buttonCount = GUI.buttonCount+1
 end
 function GUI.init()
@@ -50,17 +50,17 @@ function GUI.tick()
 		end
 		if((Info.Time - GUI.time)> 100) then
 			GUI.updateSelection()
-		end	
-		GUI.renderGUI()	
+		end
+		GUI.renderGUI()
 		if(not GUI.loaded ) then
-			GUI.init()	 
+			GUI.init()
 		end
 	end
 end
 
-function GUI.updateSelection() 
-	if(get_key_pressed(Keys.NumPad2)) then 
-		if(GUI.selection < GUI.buttonCount -1  )then
+function GUI.updateSelection()
+	if(get_key_pressed(Keys.NumPad2)) then
+		if(GUI.selection < GUI.buttonCount -1)then
 			GUI.selection = GUI.selection +1
 			GUI.time = 0
 		end
@@ -88,7 +88,7 @@ function GUI.updateSelection()
 end
 
 function GUI.renderGUI()
-	 GUI.renderButtons()
+	GUI.renderButtons()
 end
 function GUI.renderBox(xMin,xMax,yMin,yMax,color1,color2,color3,color4)
 	DrawRect(xMin, yMin,xMax, yMax, color1, color2, color3, color4)
@@ -96,7 +96,6 @@ end
 
 function GUI.renderButtons()
 	for id, settings in pairs(GUI.GUI) do
-		local screen_w, screen_h = GetScreenResolution(0, 0)
 		local r, g, b, a = 70, 95, 95, 255
 		if(settings["active"]) then
 			r, g, b, a = 218, 242, 216, 255
@@ -110,8 +109,7 @@ function GUI.renderButtons()
 		BeginTextCommandDisplayText("STRING")
 		AddTextComponentSubstringPlayerName(settings["name"])
 		EndTextCommandDisplayText(settings["xmin"]+ 0.05, (settings["ymin"] - 0.0125 ))
-		--AddTextComponentSubstringPlayerName(settings["name"])
 		GUI.renderBox(settings["xmin"] ,settings["xmax"], settings["ymin"], settings["ymax"], r, g, b, a)
-	 end     
+	end
 end
 return GUI
