@@ -193,7 +193,7 @@ end
 
 do
 	local v3_ToStr = function(Self)
-		return ("vector3(%g,%g,%g)"):format(v3_Get(Self))
+		return ("vector3(%g, %g, %g)"):format(v3_Get(Self))
 	end
 	v3_Meta.__tostring, v3_Meta.toString = v3_ToStr, v3_ToStr
 end
@@ -204,9 +204,20 @@ v3_Meta.dump = function(Self)
 	return RetVal
 end
 
+-- Experimental And Undefined Functions/Methods (undefined behavior, can/will change whenever) Below
+-- __newindex __index __concat __unm __pow __mod __le __lt
+
+v3_Meta.__unm = function(Self)
+	local x,y,z = v3_Get(Self)
+	v3_Set(Self, -x, -y, -z)
+	return Self
+end
+
 v3_Meta.__le = function(Self,Othr)
 	return v3_Magnitude(Self) <= v3_Magnitude(Othr)
 end
 v3_Meta.__lt = function(Self,Othr)
 	return v3_Magnitude(Self) < v3_Magnitude(Othr)
 end
+
+v3_Meta.__metatable = true
