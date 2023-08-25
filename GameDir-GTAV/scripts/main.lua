@@ -6,7 +6,7 @@ Scripts_Path    = "scripts\\ScriptsDir-Lua\\" or "C:\\Path\\To\\ScriptsDir-Lua\\
 
 -- Script/Code Area
 --[[ Define JM36 LP Version ]]
-JM36_GTAV_LuaPlugin_Version=20230724.0
+JM36_GTAV_LuaPlugin_Version=20230825.0
 
 
 
@@ -27,6 +27,12 @@ local print = print
 local pcall = pcall
 local require = require
 local collectgarbage = collectgarbage
+
+
+
+--[[ Set the garbage collector to be more aggressive by default (from 200,200 to 100,100) ]]
+collectgarbage("setpause",100)
+collectgarbage("setstepmul",100)
 
 
 
