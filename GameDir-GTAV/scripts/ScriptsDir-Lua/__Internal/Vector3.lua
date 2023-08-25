@@ -9,16 +9,16 @@ local GetEntityCoords = GetEntityCoords
 
 
 
-local v3_Meta = Vector3
-setmetatable(v3_Meta,v3_Meta)
-vector3, vec3, v3 = v3_Meta, v3_Meta, v3_Meta
-
-
-
 local v3_FuncsOrigin = {}
+local v3_Meta = Vector3
+local Trash = getmetatable(v3_Meta)
 for Key, Value in pairs(v3_Meta) do
 	v3_FuncsOrigin[Key] = Value
+	Trash[Key] = nil
 end
+Trash = nil
+setmetatable(v3_Meta,nil)
+vector3, vec3, v3 = v3_Meta, v3_Meta, v3_Meta
 
 
 
@@ -108,7 +108,7 @@ v3_Meta.div = v3_FuncsOrigin.__div
 
 do
 	local v3_Equal = function(Self,Othr)
-		return (Self == Othr) or (GetX(Self) == GetX(Othr) and GetY(Self) == GetY(Othr) and GetZ(Self) == GetZ(Othr))
+		return (GetX(Self) == GetX(Othr) and GetY(Self) == GetY(Othr) and GetZ(Self) == GetZ(Othr))
 	end
 	v3_Meta.__eq, v3_Meta.eq = v3_Equal, v3_Equal
 end
