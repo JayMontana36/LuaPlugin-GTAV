@@ -13,7 +13,9 @@ local v3_FuncsOrigin = {}
 local v3_Meta = Vector3
 local Trash = getmetatable(v3_Meta)
 for Key, Value in pairs(v3_Meta) do
-	v3_FuncsOrigin[Key] = Value
+	if not Key:startsWith("__") then
+		v3_FuncsOrigin[Key] = Value
+	end
 	Trash[Key] = nil
 end
 Trash = nil
@@ -26,7 +28,6 @@ local GetX, GetY, GetZ, SetX, SetY, SetZ;do
 	local Get, Set = v3_FuncsOrigin[".get"], v3_FuncsOrigin[".set"]
 	GetX, GetY, GetZ, SetX, SetY, SetZ = Get.x, Get.y, Get.z, Set.x, Set.y, Set.z
 end
-local Sub = v3_FuncsOrigin.__sub
 
 
 
@@ -101,10 +102,38 @@ v3_Meta.setZ = function(Self,z)
 	SetZ(Self,z)
 end
 
-v3_Meta.add = v3_FuncsOrigin.__add
-v3_Meta.sub = Sub -- Upvalue to method
-v3_Meta.mul = v3_FuncsOrigin.__mul
-v3_Meta.div = v3_FuncsOrigin.__div
+do
+	local v3_Add = function(Self,Othr)
+		local x1,y1,z1 = v3_Get(Self)
+		local x2,y2,z2 = v3_Get(Othr)
+		v3_Set(Self, x1+x2, y1+y2, z1+z2)
+		return Self
+	end
+	v3_Meta.__add, v3_Meta.add = v3_Add, v3_Add
+end
+local v3_Sub = function(Self,Othr)
+	local x1,y1,z1 = v3_Get(Self)
+	local x2,y2,z2 = v3_Get(Othr)
+	v3_Set(Self, x1-x2, y1-y2, z1-z2)
+	return Self
+end
+v3_Meta.__sub, v3_Meta.sub = v3_Sub, v3_Sub
+do
+	local v3_Mul = function(Self,Nmbr)
+		local x,y,z = v3_Get(Self)
+		v3_Set(Self, x*Nmbr,y*Nmbr,z*Nmbr)
+		return Self
+	end
+	v3_Meta.__mul, v3_Meta.mul = v3_Mul, v3_Mul
+end
+do
+	local v3_Div = function(Self,Nmbr)
+		local x,y,z = v3_Get(Self)
+		v3_Set(Self, x/Nmbr,y/Nmbr,z/Nmbr)
+		return Self
+	end
+	v3_Meta.__div, v3_Meta.div = v3_Div, v3_Div
+end
 
 do
 	local v3_Equal = function(Self,Othr)
@@ -123,7 +152,7 @@ do
 		if Do3d == false then
 			return math_sqrt(((GetX(Self)-GetX(Othr))^2)+((GetY(Self)-GetY(Othr))^2))
 		end
-		return v3_Magnitude(Sub(Self,Othr)) -- #(Self-Othr) 
+		return v3_Magnitude(v3_Sub(Self,Othr)) -- #(Self-Othr) 
 	end
 	v3_Meta.distance, v3_Meta.dist = v3_Dist, v3_Dist
 end
@@ -173,4 +202,11 @@ v3_Meta.dump = function(Self)
 	local RetVal = {x=0.0,y=0.0,z=0.0}
 	RetVal.x,RetVal.y,RetVal.z = v3_Get(Self)
 	return RetVal
+end
+
+v3_Meta.__le = function(Self,Othr)
+	return v3_Magnitude(Self) <= v3_Magnitude(Othr)
+end
+v3_Meta.__lt = function(Self,Othr)
+	return v3_Magnitude(Self) < v3_Magnitude(Othr)
 end
