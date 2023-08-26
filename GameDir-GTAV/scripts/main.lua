@@ -6,7 +6,7 @@ Scripts_Path    = "scripts\\ScriptsDir-Lua\\" or "C:\\Path\\To\\ScriptsDir-Lua\\
 
 -- Script/Code Area
 --[[ Define JM36 LP Version ]]
-JM36_GTAV_LuaPlugin_Version=20230724.0
+JM36_GTAV_LuaPlugin_Version=20230826.0
 
 
 
@@ -14,6 +14,7 @@ JM36_GTAV_LuaPlugin_Version=20230724.0
 local Scripts_Path = Scripts_Path
 local setmetatable = setmetatable
 local pairs = pairs
+local type = type
 local coroutine = coroutine
 local coroutine_yield = coroutine.yield
 local coroutine_create = coroutine.create
@@ -23,10 +24,15 @@ local coroutine_status = coroutine.status
 local table_sort = table.sort
 local lfs_dir = lfs.dir
 local print = print
-local type = type
 local pcall = pcall
 local require = require
 local collectgarbage = collectgarbage
+
+
+
+--[[ Set the garbage collector to be more aggressive by default (from 200,200 to 100,100) ]]
+collectgarbage("setpause",100)
+collectgarbage("setstepmul",100)
 
 
 
@@ -70,25 +76,49 @@ end
 
 --[[ Add string functions ]]
 do
-	local string = string
-	string.split = function(string,sep) -- Split strings into chunks or arguments (in tables)
+	local FuncStrMeta = getmetatable("")
+	local FuncStr = FuncStrMeta.__index
+	
+	FuncStrMeta.__index = function(Self,Key)
+		if type(Key) ~= 'number' then
+			return FuncStr[Key]
+		end
+		local Value = Self:sub(Key,Key)
+		return Value ~= "" and Value or nil
+	end
+	
+	FuncStrMeta.__add = function(strA,strB)
+		return strA..strB
+	end
+	FuncStrMeta.__sub = function(strA,strB)
+		return strA:gsub(strB,"")
+	end
+	FuncStrMeta.__mul = function(str,num)
+		return str:rep(num)
+	end
+	
+	FuncStr.split = function(str,sep) -- Split strings into chunks or arguments (in tables)
 		sep = sep or "%s"
 		local t,n={},0
-		for str in string:gmatch("([^"..sep.."]+)") do
+		for str in str:gmatch("([^"..sep.."]+)") do
 			n=n+1 t[n]=str
 		end
 		return t
 	end
 	
-	string.upperFirst = function(string) -- Make the first letter of a string uppercase
-		return string:sub(1,1):upper()..string:sub(2)
+	FuncStr.upperFirst = function(str) -- Make the first letter of a string uppercase
+		return str:sub(1,1):upper()..str:sub(2)
 	end
 	
-	string.startsWith = function(string, startsWith) -- Check if a string starts with something
-		return string:sub(1, #startsWith) == startsWith
+	FuncStr.startsWith = function(str, startsWith) -- Check if a string starts with something
+		return str:sub(1, #startsWith) == startsWith
 	end
-	string.endsWith = function(string, endsWith) -- Check if a string ends with something
-		return string:sub(-#endsWith) == endsWith
+	FuncStr.endsWith = function(str, endsWith) -- Check if a string ends with something
+		return str:sub(-#endsWith) == endsWith
+	end
+	
+	FuncStr.escape = function(str)
+		return str:gsub("[%^%$%(%)%%%.%[%]%*%+%-%?]","%%%1")
 	end
 end
 
@@ -124,17 +154,32 @@ local __Internal_Path = Scripts_Path.."__Internal//" _G.__Internal_Path = __Inte
 do
 	local package_path = package.path
 	local DirectoriesList = {"Scripts_Path","Script_Modules","__Script_Modules","Script_Libs","__Script_Libs"}
-	local FiletypesList = {".dll",".luac","",".lua"}
+	local FiletypesList = {".lua","",".luac"}
 	
 	for i=1,5 do
 		local Directory = _G[DirectoriesList[i]]
-		for j=1,4 do
+		for j=1,3 do
 			local Filetype = FiletypesList[j]
 			package_path = (".\\?%s;%s?%s;%slibs\\?%s;%slibs\\?\\init%s;%s"):format(Filetype,Directory,Filetype,Directory,Filetype,Directory,Filetype,package_path)
 			--Type,Directory,Type,Directory,Type,Directory,Type,ConcatOnTo
 		end
 	end
 	package.path = package_path
+end
+do
+	local package_path = package.cpath
+	local DirectoriesList = {"Scripts_Path","Script_Modules","__Script_Modules","Script_Libs","__Script_Libs"}
+	local FiletypesList = {".dll",""}
+	
+	for i=1,5 do
+		local Directory = _G[DirectoriesList[i]]
+		for j=1,1--[[2]] do
+			local Filetype = FiletypesList[j]
+			package_path = (".\\?%s;%s?%s;%slibs\\?%s;%slibs\\?\\init%s;%s"):format(Filetype,Directory,Filetype,Directory,Filetype,Directory,Filetype,package_path)
+			--Type,Directory,Type,Directory,Type,Directory,Type,ConcatOnTo
+		end
+	end
+	package.cpath = package_path
 end
 
 local Threads_HighPriority = {}
