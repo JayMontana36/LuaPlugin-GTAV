@@ -4,8 +4,15 @@ local math_sqrt = math.sqrt
 local math_abs = math.abs
 local math_min = math.min
 local math_max = math.max
+local math_sin = math.sin
+local math_pi = math.pi
+local math_atan2 = math.atan2 -- atan
+local math_cos = math.cos
 
 local GetEntityCoords = GetEntityCoords
+
+local MathPiMul180 = math_pi * 180
+local MathPiDiv180 = math_pi / 180
 
 
 
@@ -63,12 +70,6 @@ local v3_New = function(x,y,z)
 end
 v3_Meta.__call, v3_Meta.new = v3_New, v3_New
 
-v3_Meta.reset = function(Self)
-	SetX(Self,0)
-	SetY(Self,0)
-	SetZ(Self,0)
-end
-
 local v3_Get = function(Self)
 	return GetX(Self),GetY(Self),GetZ(Self)
 end
@@ -78,9 +79,7 @@ v3_Meta.getY = GetY
 v3_Meta.getZ = GetZ
 
 local v3_Set = function(Self,x,y,z)
-	SetX(Self,x)
-	SetY(Self,y)
-	SetZ(Self,z)
+	SetX(Self,x);SetY(Self,y);SetZ(Self,z)
 	--[[if type(x) == 'number' then
 		SetX(Self,x)
 	end
@@ -90,47 +89,45 @@ local v3_Set = function(Self,x,y,z)
 	if type(z) == 'number' then
 		SetZ(Self,z)
 	end]]
+	return Self
 end
 v3_Meta.set = v3_Set
 v3_Meta.setX = function(Self,x)
 	SetX(Self,x)
+	return Self
 end
 v3_Meta.setY = function(Self,y)
 	SetY(Self,y)
+	return Self
 end
 v3_Meta.setZ = function(Self,z)
 	SetZ(Self,z)
+	return Self
+end
+
+v3_Meta.reset = function(Self)
+	return v3_Set(Self, 0,0,0)
 end
 
 do
 	local v3_Add = function(Self,Othr)
-		local x1,y1,z1 = v3_Get(Self)
-		local x2,y2,z2 = v3_Get(Othr)
-		v3_Set(Self, x1+x2, y1+y2, z1+z2)
-		return Self
+		return v3_Set(Self, GetX(Self)+GetX(Othr),GetY(Self)+GetY(Othr),GetZ(Self)+GetZ(Othr))
 	end
 	v3_Meta.__add, v3_Meta.add = v3_Add, v3_Add
 end
 local v3_Sub = function(Self,Othr)
-	local x1,y1,z1 = v3_Get(Self)
-	local x2,y2,z2 = v3_Get(Othr)
-	v3_Set(Self, x1-x2, y1-y2, z1-z2)
-	return Self
+	return v3_Set(Self, GetX(Self)-GetX(Othr),GetY(Self)-GetY(Othr),GetZ(Self)-GetZ(Othr))
 end
 v3_Meta.__sub, v3_Meta.sub = v3_Sub, v3_Sub
 do
 	local v3_Mul = function(Self,Nmbr)
-		local x,y,z = v3_Get(Self)
-		v3_Set(Self, x*Nmbr,y*Nmbr,z*Nmbr)
-		return Self
+		return v3_Set(Self, GetX(Self)*Nmbr, GetY(Self)*Nmbr, GetZ(Self)*Nmbr)
 	end
 	v3_Meta.__mul, v3_Meta.mul = v3_Mul, v3_Mul
 end
 do
 	local v3_Div = function(Self,Nmbr)
-		local x,y,z = v3_Get(Self)
-		v3_Set(Self, x/Nmbr,y/Nmbr,z/Nmbr)
-		return Self
+		return v3_Set(Self, GetX(Self)/Nmbr, GetY(Self)/Nmbr, GetZ(Self)/Nmbr)
 	end
 	v3_Meta.__div, v3_Meta.div = v3_Div, v3_Div
 end
@@ -152,16 +149,13 @@ do
 		if Do3d == false then
 			return math_sqrt(((GetX(Self)-GetX(Othr))^2)+((GetY(Self)-GetY(Othr))^2))
 		end
-		return v3_Magnitude(v3_Sub(Self,Othr)) -- #(Self-Othr) 
+		return v3_Magnitude(v3_Sub(Self,Othr)) -- #(Self-Othr)
 	end
 	v3_Meta.distance, v3_Meta.dist = v3_Dist, v3_Dist
 end
 
 v3_Meta.abs = function(Self)
-	local x,y,z = v3_Get(Self)
-	x,y,z = math_abs(x),math_abs(y),math_abs(z)
-	v3_Set(Self, x, y, z)
-	return Self
+	return v3_Set(Self, math_abs(GetX(Self)), math_abs(GetY(Self)), math_abs(GetZ(Self)))
 end
 
 -- v3_Meta.sum
@@ -174,22 +168,38 @@ v3_Meta.max = function(Self)
 	return math_max(v3_Get(Self))
 end
 
--- v3_Meta.dot
+v3_Meta.dot = function(Self,Nmbr)
+	return (GetX(Self) * Nmbr) + (GetY(Self) * Nmbr) + (GetZ(Self) * Nmbr)
+end
 
 do
 	local v3_Norm = function(Self)
 		local x,y,z = v3_Get(Self)
-		local Magnitude = math_sqrt((x^2) + (y^2) + (z^2))
-		v3_Set(Self, x/Magnitude, y/Magnitude, z/Magnitude)
-		return Self
+		local Magnitude = math_sqrt((x^2) + (y^2) + (z^2))--[[#Vec]]
+		return v3_Set(Self, x/Magnitude, y/Magnitude, z/Magnitude)
 	end
 	v3_Meta.norm, v3_Meta.normalize, v3_Meta.normalise = v3_Norm, v3_Norm, v3_Norm
 end
 
 -- v3_Meta.crossProduct
--- v3_Meta.toRot
--- v3_Meta.lookAt
--- v3_Meta.toDir
+
+do
+	local v3_ToRot = function(Self)
+		local x,y,z = v3_Get(Self)
+		return v3_Set(Self, math_sin(z / math_sqrt(x^2 + y^2 + z^2))--[[mag aka #Vec]] / MathPiMul180, 0.0, -math_atan2(x, y) / MathPiMul180)
+	end
+	v3_Meta.toRot = v3_ToRot
+
+	v3_Meta.lookAt = function(Self,Othr)
+		return v3_ToRot(v3_Sub(Othr,Self))
+	end
+end
+v3_Meta.toDir = function(Self)
+	local rad_z = GetZ(Self) * MathPiDiv180
+	local rad_x = GetX(Self) * MathPiDiv180
+	local num = math_abs(math_cos(rad_x))
+	return v3_Set(Self, -math_sin(rad_z) * num, math_cos(rad_z) * num, math_sin(rad_x))
+end
 
 do
 	local v3_ToStr = function(Self)
@@ -199,18 +209,13 @@ do
 end
 
 v3_Meta.dump = function(Self)
-	local RetVal = {x=0.0,y=0.0,z=0.0}
-	RetVal.x,RetVal.y,RetVal.z = v3_Get(Self)
-	return RetVal
+	return {x=GetX(Self),y=GetY(Self),z=GetZ(Self)}
 end
 
--- Experimental And Undefined Functions/Methods (undefined behavior, can/will change whenever) Below
--- __newindex __index __concat __unm __pow __mod __le __lt
+-- Experimental And "Undefined" Functions/Methods (undefined behavior, can/will change whenever) After Here -- __newindex __index __concat __unm __pow __mod __le __lt
 
 v3_Meta.__unm = function(Self)
-	local x,y,z = v3_Get(Self)
-	v3_Set(Self, -x, -y, -z)
-	return Self
+	return v3_Set(Self, -GetX(Self), -GetY(Self), -GetZ(Self))
 end
 
 v3_Meta.__le = function(Self,Othr)
