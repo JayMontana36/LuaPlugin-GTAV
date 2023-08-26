@@ -6,7 +6,7 @@ Scripts_Path    = "scripts\\ScriptsDir-Lua\\" or "C:\\Path\\To\\ScriptsDir-Lua\\
 
 -- Script/Code Area
 --[[ Define JM36 LP Version ]]
-JM36_GTAV_LuaPlugin_Version=20230825.0
+JM36_GTAV_LuaPlugin_Version=20230826.0
 
 
 
@@ -154,17 +154,32 @@ local __Internal_Path = Scripts_Path.."__Internal//" _G.__Internal_Path = __Inte
 do
 	local package_path = package.path
 	local DirectoriesList = {"Scripts_Path","Script_Modules","__Script_Modules","Script_Libs","__Script_Libs"}
-	local FiletypesList = {".dll",".luac","",".lua"}
+	local FiletypesList = {".lua","",".luac"}
 	
 	for i=1,5 do
 		local Directory = _G[DirectoriesList[i]]
-		for j=1,4 do
+		for j=1,3 do
 			local Filetype = FiletypesList[j]
 			package_path = (".\\?%s;%s?%s;%slibs\\?%s;%slibs\\?\\init%s;%s"):format(Filetype,Directory,Filetype,Directory,Filetype,Directory,Filetype,package_path)
 			--Type,Directory,Type,Directory,Type,Directory,Type,ConcatOnTo
 		end
 	end
 	package.path = package_path
+end
+do
+	local package_path = package.cpath
+	local DirectoriesList = {"Scripts_Path","Script_Modules","__Script_Modules","Script_Libs","__Script_Libs"}
+	local FiletypesList = {".dll",""}
+	
+	for i=1,5 do
+		local Directory = _G[DirectoriesList[i]]
+		for j=1,1--[[2]] do
+			local Filetype = FiletypesList[j]
+			package_path = (".\\?%s;%s?%s;%slibs\\?%s;%slibs\\?\\init%s;%s"):format(Filetype,Directory,Filetype,Directory,Filetype,Directory,Filetype,package_path)
+			--Type,Directory,Type,Directory,Type,Directory,Type,ConcatOnTo
+		end
+	end
+	package.cpath = package_path
 end
 
 local Threads_HighPriority = {}
